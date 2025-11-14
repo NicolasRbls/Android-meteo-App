@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,6 +40,18 @@ import com.example.android_meteo_app.domain.WeatherInfo
 import com.example.android_meteo_app.ui.getWeatherIcon
 import com.example.android_meteo_app.ui.viewmodels.DetailViewModel
 import java.time.format.DateTimeFormatter
+
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import com.example.android_meteo_app.domain.WeatherCondition
+import com.example.android_meteo_app.ui.theme.CloudyGradientEnd
+import com.example.android_meteo_app.ui.theme.CloudyGradientStart
+import com.example.android_meteo_app.ui.theme.RainyGradientEnd
+import com.example.android_meteo_app.ui.theme.RainyGradientStart
+import com.example.android_meteo_app.ui.theme.SunnyGradientEnd
+import com.example.android_meteo_app.ui.theme.SunnyGradientStart
+import com.example.android_meteo_app.ui.theme.UnknownGradientEnd
+import com.example.android_meteo_app.ui.theme.UnknownGradientStart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -105,19 +118,20 @@ fun WeatherDetails(weatherInfo: WeatherInfo, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
+            .background(getWeatherBackgroundBrush(weatherInfo.currentCondition))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = weatherInfo.city.name, style = MaterialTheme.typography.headlineMedium)
+        Text(text = weatherInfo.city.name, style = MaterialTheme.typography.headlineMedium, color = Color.White)
         Spacer(Modifier.height(8.dp))
         Icon(
             imageVector = getWeatherIcon(weatherInfo.currentCondition),
             contentDescription = weatherInfo.currentCondition.name,
             modifier = Modifier.size(128.dp),
-            tint = MaterialTheme.colorScheme.primary
+            tint = Color.White
         )
-        Text(text = "${weatherInfo.currentTemperature}°C", fontSize = 72.sp)
-        Text(text = weatherInfo.currentCondition.name, style = MaterialTheme.typography.titleMedium)
+        Text(text = "${weatherInfo.currentTemperature}°C", fontSize = 72.sp, color = Color.White)
+        Text(text = weatherInfo.currentCondition.name, style = MaterialTheme.typography.titleMedium, color = Color.White)
 
         Spacer(Modifier.height(32.dp))
 
@@ -139,8 +153,8 @@ fun WeatherDetails(weatherInfo: WeatherInfo, modifier: Modifier = Modifier) {
 @Composable
 fun InfoItem(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = label, style = MaterialTheme.typography.labelMedium)
-        Text(text = value, style = MaterialTheme.typography.bodyLarge)
+        Text(text = label, style = MaterialTheme.typography.labelMedium, color = Color.White)
+        Text(text = value, style = MaterialTheme.typography.bodyLarge, color = Color.White)
     }
 }
 
@@ -150,7 +164,8 @@ fun HourlyForecast(hourly: List<HourlyWeather>) {
         Text(
             text = "Hourly Forecast",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
+            color = Color.White
         )
         LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             items(hourly) { weather ->
@@ -163,22 +178,40 @@ fun HourlyForecast(hourly: List<HourlyWeather>) {
 @Composable
 fun HourlyItem(weather: HourlyWeather) {
     val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    Card(modifier = Modifier.padding(vertical = 4.dp)) {
+    Card(modifier = Modifier.padding(vertical = 4.dp), colors = CardDefaults.cardColors(containerColor = Color.Transparent)) {
         Column(
             modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = weather.time.format(formatter))
+            Text(text = weather.time.format(formatter), color = Color.White)
             Spacer(Modifier.height(8.dp))
             Icon(
                 imageVector = getWeatherIcon(weather.condition),
                 contentDescription = weather.condition.name,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = Color.White
             )
-            Text(text = "${weather.temperature}°C", style = MaterialTheme.typography.bodyLarge)
+            Text(text = "${weather.temperature}°C", style = MaterialTheme.typography.bodyLarge, color = Color.White)
             Spacer(Modifier.height(4.dp))
-            Text(text = "${weather.windSpeed} km/h", fontSize = 12.sp)
+            Text(text = "${weather.windSpeed} km/h", fontSize = 12.sp, color = Color.White)
         }
+    }
+}
+
+@Composable
+fun getWeatherBackgroundBrush(condition: WeatherCondition): Brush {
+    return when (condition) {
+        WeatherCondition.SUNNY -> Brush.linearGradient(
+            colors = listOf(SunnyGradientStart, SunnyGradientEnd)
+        )
+        WeatherCondition.CLOUDY -> Brush.linearGradient(
+            colors = listOf(CloudyGradientStart, CloudyGradientEnd)
+        )
+        WeatherCondition.RAINY -> Brush.linearGradient(
+            colors = listOf(RainyGradientStart, RainyGradientEnd)
+        )
+        WeatherCondition.UNKNOWN -> Brush.linearGradient(
+            colors = listOf(UnknownGradientStart, UnknownGradientEnd)
+        )
     }
 }
