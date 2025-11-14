@@ -97,4 +97,8 @@ class HomeViewModel @Inject constructor(
     fun onLocationNavigationConsumed() {
         _uiState.update { it.copy(currentUserLocation = null) }
     }
+
+    fun onPermissionDenied() {
+        _uiState.update { it.copy(error = "Location permissions denied. Please grant permissions to use this feature.") }
+    }
 }

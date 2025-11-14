@@ -58,6 +58,7 @@ fun HomeScreen(
             viewModel.onLocationRequested()
         } else {
             // Handle permission denial by showing a snackbar
+            viewModel.onPermissionDenied()
         }
     }
 
