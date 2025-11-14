@@ -1,24 +1,18 @@
 package com.example.android_meteo_app.ui.screens
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -33,6 +27,30 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            viewModel.onLocationRequested()
+        } else {
+            // Handle permission denial
+        }
+    }
+
+    LaunchedEffect(uiState.currentUserLocation) {
+        uiState.currentUserLocation?.let { location ->
+            navController.navigate(
+                Screen.Details.createRoute(
+                    cityId = 0, // 0 indicates it's a location, not a saved city
+                    latitude = location.latitude.toFloat(),
+                    longitude = location.longitude.toFloat(),
+                    name = "Current Location"
+                )
+            )
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -43,14 +61,21 @@ fun HomeScreen(
             SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
-                isSearching = uiState.isSearching
+                isSearching = uiState.isSearching,
+                onLocationClick = {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
             )
 
             if (uiState.searchQuery.isNotBlank()) {
                 LazyColumn {
                     items(uiState.searchResults) { city ->
                         CityRow(city = city) {
-                            // Navigate to details
                             navController.navigate(
                                 Screen.Details.createRoute(
                                     cityId = city.id,
@@ -63,9 +88,7 @@ fun HomeScreen(
                     }
                 }
             } else {
-                // Show favorites
                 FavoriteCitiesList(cities = uiState.favoriteCities) { city ->
-                    // Navigate to details
                      navController.navigate(
                         Screen.Details.createRoute(
                             cityId = city.id,
@@ -84,7 +107,8 @@ fun HomeScreen(
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    isSearching: Boolean
+    isSearching: Boolean,
+    onLocationClick: () -> Unit
 ) {
     TextField(
         value = query,
@@ -93,6 +117,11 @@ fun SearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
+        leadingIcon = {
+            IconButton(onClick = onLocationClick) {
+                Icon(Icons.Default.LocationOn, contentDescription = "Use current location")
+            }
+        },
         trailingIcon = {
             if (isSearching) {
                 CircularProgressIndicator()

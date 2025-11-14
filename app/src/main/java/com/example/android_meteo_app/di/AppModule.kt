@@ -1,5 +1,6 @@
 package com.example.android_meteo_app.di
 
+import android.app.Application
 import android.content.Context
 import androidx.room.Room
 import com.example.android_meteo_app.data.ForecastApiService
@@ -7,6 +8,8 @@ import com.example.android_meteo_app.data.GeocodingApiService
 import com.example.android_meteo_app.data.database.AppDatabase
 import com.example.android_meteo_app.data.database.FavoriteCityDao
 import com.example.android_meteo_app.data.database.WeatherCacheDao
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -99,5 +102,11 @@ object AppModule {
     @Singleton
     fun provideWeatherCacheDao(appDatabase: AppDatabase): WeatherCacheDao {
         return appDatabase.weatherCacheDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFusedLocationProviderClient(@ApplicationContext context: Context): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(context)
     }
 }

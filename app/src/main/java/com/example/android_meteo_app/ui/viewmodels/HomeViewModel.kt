@@ -19,12 +19,14 @@ data class HomeUiState(
     val searchResults: List<City> = emptyList(),
     val favoriteCities: List<City> = emptyList(),
     val isSearching: Boolean = false,
+    val currentUserLocation: android.location.Location? = null,
     val error: String? = null
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val weatherRepository: WeatherRepository
+    private val weatherRepository: WeatherRepository,
+    private val locationTracker: com.example.android_meteo_app.domain.LocationTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -61,6 +63,25 @@ class HomeViewModel @Inject constructor(
                         it.copy(error = "Search failed: ${error.message}", isSearching = false)
                     }
                 }
+        }
+    }
+
+    fun onLocationRequested() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSearching = true) }
+            locationTracker.getCurrentLocation()?.let { location ->
+                _uiState.update {
+                    it.copy(
+                        isSearching = false,
+                        currentUserLocation = location
+                    )
+                }
+            } ?: _uiState.update {
+                it.copy(
+                    isSearching = false,
+                    error = "Could not retrieve location. Make sure GPS is enabled and permissions are granted."
+                )
+            }
         }
     }
 }

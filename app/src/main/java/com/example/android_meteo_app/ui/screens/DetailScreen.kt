@@ -57,7 +57,8 @@ fun DetailScreen(
                     }
                 },
                 actions = {
-                    if (uiState.weatherInfo != null) {
+                    val weatherInfo = uiState.weatherInfo
+                    if (weatherInfo != null && weatherInfo.city.id != 0) {
                         IconButton(onClick = { viewModel.toggleFavorite() }) {
                             Icon(
                                 imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -70,8 +71,9 @@ fun DetailScreen(
             )
         }
     ) { paddingValues ->
+        val state = uiState
         when {
-            uiState.isLoading -> {
+            state.isLoading -> {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -80,16 +82,16 @@ fun DetailScreen(
                     CircularProgressIndicator()
                 }
             }
-            uiState.error != null -> {
+            state.error != null -> {
                 Text(
-                    text = uiState.error!!,
+                    text = state.error,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(paddingValues).padding(16.dp)
                 )
             }
-            uiState.weatherInfo != null -> {
+            state.weatherInfo != null -> {
                 WeatherDetails(
-                    weatherInfo = uiState.weatherInfo!!,
+                    weatherInfo = state.weatherInfo,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
