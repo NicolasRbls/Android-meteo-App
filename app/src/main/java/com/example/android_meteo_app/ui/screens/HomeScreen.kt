@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.android_meteo_app.domain.City
 import com.example.android_meteo_app.ui.navigation.Screen
 import com.example.android_meteo_app.ui.viewmodels.HomeViewModel
+import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,15 +28,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
-            viewModel.onLocationRequested()
-        } else {
-            // Handle permission denial
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
         }
     }
 
@@ -49,13 +47,25 @@ fun HomeScreen(
                     name = "Current Location"
                 )
             )
+            viewModel.onLocationNavigationConsumed()
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true || permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            viewModel.onLocationRequested()
+        } else {
+            // Handle permission denial by showing a snackbar
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Meteo App") })
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(modifier = Modifier.padding(paddingValues)) {
             SearchBar(
@@ -88,13 +98,13 @@ fun HomeScreen(
                     }
                 }
             } else {
-                FavoriteCitiesList(cities = uiState.favoriteCities) { city ->
+                FavoriteCitiesList(cities = uiState.favoriteCities) { clickedCity ->
                      navController.navigate(
                         Screen.Details.createRoute(
-                            cityId = city.id,
-                            latitude = city.latitude.toFloat(),
-                            longitude = city.longitude.toFloat(),
-                            name = city.name
+                            cityId = clickedCity.id,
+                            latitude = clickedCity.latitude.toFloat(),
+                            longitude = clickedCity.longitude.toFloat(),
+                            name = clickedCity.name
                         )
                     )
                 }
@@ -131,7 +141,7 @@ fun SearchBar(
 }
 
 @Composable
-fun FavoriteCitiesList(cities: List<City>, onCityClick: (City) -> Unit) {
+fun FavoriteCitiesList(cities: List<com.example.android_meteo_app.domain.FavoriteWeatherSummary>, onCityClick: (City) -> Unit) {
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -147,9 +157,44 @@ fun FavoriteCitiesList(cities: List<City>, onCityClick: (City) -> Unit) {
                 Text("You have no favorite cities yet.")
             }
         } else {
-            items(cities) { city ->
-                CityRow(city = city, onCityClick = onCityClick)
+            items(cities) { summary ->
+                FavoriteCityRow(summary = summary, onCityClick = onCityClick)
             }
+        }
+    }
+}
+
+@Composable
+fun FavoriteCityRow(summary: com.example.android_meteo_app.domain.FavoriteWeatherSummary, onCityClick: (City) -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCityClick(summary.city) }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                val displayText = buildString {
+                    append(summary.city.name)
+                    if (summary.city.country.isNotBlank()) {
+                        append(", ${summary.city.country}")
+                    }
+                }
+                Text(text = displayText)
+            }
+            summary.weatherInfo?.let { weather ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "${weather.currentTemperature}°C",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    // Here you could add an icon for the weather.currentCondition
+                }
+            } ?: CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }
     }
 }

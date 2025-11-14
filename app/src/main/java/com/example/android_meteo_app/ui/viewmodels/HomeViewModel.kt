@@ -3,6 +3,7 @@ package com.example.android_meteo_app.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.android_meteo_app.domain.City
+import com.example.android_meteo_app.domain.FavoriteWeatherSummary
 import com.example.android_meteo_app.domain.WeatherRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -17,7 +18,7 @@ import javax.inject.Inject
 data class HomeUiState(
     val searchQuery: String = "",
     val searchResults: List<City> = emptyList(),
-    val favoriteCities: List<City> = emptyList(),
+    val favoriteCities: List<FavoriteWeatherSummary> = emptyList(),
     val isSearching: Boolean = false,
     val currentUserLocation: android.location.Location? = null,
     val error: String? = null
@@ -37,7 +38,11 @@ class HomeViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             weatherRepository.getFavoriteCities().collectLatest { favorites ->
-                _uiState.update { it.copy(favoriteCities = favorites) }
+                val summaries = favorites.map { city ->
+                    val weatherResult = weatherRepository.getWeather(city)
+                    FavoriteWeatherSummary(city, weatherResult.getOrNull())
+                }
+                _uiState.update { it.copy(favoriteCities = summaries) }
             }
         }
     }
@@ -83,5 +88,13 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
+    }
+
+    fun onLocationNavigationConsumed() {
+        _uiState.update { it.copy(currentUserLocation = null) }
     }
 }
