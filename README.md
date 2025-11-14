@@ -43,10 +43,6 @@ L'application suit une architecture MVVM propre et modulaire, divisée en trois 
 
 Hilt est utilisé pour injecter les dépendances à travers ces couches, assurant une grande testabilité et maintenabilité.
 
-## Captures d'écran
-<!-- Ajoutez ici des captures d'écran de votre application -->
-*(Placeholder pour les captures d'écran : Écran d'accueil, Écran de détails, Recherche de ville, Liste des favoris)*
-
 ## Comment exécuter le projet
 
 1.  **Cloner le dépôt Git** :
