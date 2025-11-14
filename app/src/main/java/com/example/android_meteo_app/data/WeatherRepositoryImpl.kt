@@ -14,7 +14,8 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class WeatherRepositoryImpl @Inject constructor(
-    private val weatherApiService: WeatherApiService,
+    private val geocodingApiService: GeocodingApiService,
+    private val forecastApiService: ForecastApiService,
     private val favoriteCityDao: FavoriteCityDao,
     private val weatherCacheDao: WeatherCacheDao,
     private val json: Json
@@ -22,7 +23,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
     override suspend fun searchCity(name: String): Result<List<City>> {
         return try {
-            val response = weatherApiService.searchCity(name)
+            val response = geocodingApiService.searchCity(name)
             val cities = response.results?.map { it.toDomain() } ?: emptyList()
             Result.success(cities)
         } catch (e: Exception) {
@@ -47,7 +48,7 @@ class WeatherRepositoryImpl @Inject constructor(
 
         // If cache is invalid or not present, fetch from network
         return try {
-            val weatherResponse = weatherApiService.getWeatherForecast(city.latitude, city.longitude)
+            val weatherResponse = forecastApiService.getWeatherForecast(city.latitude, city.longitude)
             // Save to cache
             val jsonResponse = json.encodeToString(weatherResponse)
             weatherCacheDao.insert(WeatherCacheEntity(cacheKey, jsonResponse, System.currentTimeMillis()))

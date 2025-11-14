@@ -2,7 +2,8 @@ package com.example.android_meteo_app.di
 
 import android.content.Context
 import androidx.room.Room
-import com.example.android_meteo_app.data.WeatherApiService
+import com.example.android_meteo_app.data.ForecastApiService
+import com.example.android_meteo_app.data.GeocodingApiService
 import com.example.android_meteo_app.data.database.AppDatabase
 import com.example.android_meteo_app.data.database.FavoriteCityDao
 import com.example.android_meteo_app.data.database.WeatherCacheDao
@@ -44,7 +45,20 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+    @GeocodingApi
+    fun provideGeocodingRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+        val contentType = "application/json".toMediaType()
+        return Retrofit.Builder()
+            .baseUrl("https://geocoding-api.open-meteo.com/")
+            .client(okHttpClient)
+            .addConverterFactory(json.asConverterFactory(contentType))
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    @ForecastApi
+    fun provideForecastRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             .baseUrl("https://api.open-meteo.com/")
@@ -55,8 +69,14 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideWeatherApiService(retrofit: Retrofit): WeatherApiService {
-        return retrofit.create(WeatherApiService::class.java)
+    fun provideGeocodingApiService(@GeocodingApi retrofit: Retrofit): GeocodingApiService {
+        return retrofit.create(GeocodingApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideForecastApiService(@ForecastApi retrofit: Retrofit): ForecastApiService {
+        return retrofit.create(ForecastApiService::class.java)
     }
 
     @Provides

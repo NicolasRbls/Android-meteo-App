@@ -6,10 +6,16 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.example.android_meteo_app.ui.navigation.Screen
+import com.example.android_meteo_app.ui.screens.DetailScreen
+import com.example.android_meteo_app.ui.screens.HomeScreen
 import com.example.android_meteo_app.ui.theme.AndroidmeteoAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,12 +25,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AndroidmeteoAppTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    MeteoNavHost()
                 }
             }
         }
@@ -32,17 +37,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    AndroidmeteoAppTheme {
-        Greeting("Android")
+fun MeteoNavHost() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = Screen.Home.route) {
+        composable(Screen.Home.route) {
+            HomeScreen(navController)
+        }
+        composable(
+            route = Screen.Details.route,
+            arguments = Screen.Details.arguments
+        ) {
+            DetailScreen(navController)
+        }
     }
 }

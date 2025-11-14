@@ -1,20 +1,10 @@
 package com.example.android_meteo_app.data
 
-import com.example.android_meteo_app.data.dto.GeocodingResponse
 import com.example.android_meteo_app.data.dto.WeatherForecastResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface WeatherApiService {
-
-    @GET("v1/search")
-    suspend fun searchCity(
-        @Query("name") cityName: String,
-        @Query("count") count: Int = 10,
-        @Query("language") language: String = "en",
-        @Query("format") format: String = "json"
-    ): GeocodingResponse
-
+interface ForecastApiService {
     @GET("v1/forecast")
     suspend fun getWeatherForecast(
         @Query("latitude") latitude: Double,

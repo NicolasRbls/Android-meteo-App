@@ -1,0 +1,66 @@
+package com.example.android_meteo_app.ui.viewmodels
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.android_meteo_app.domain.City
+import com.example.android_meteo_app.domain.WeatherRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+data class HomeUiState(
+    val searchQuery: String = "",
+    val searchResults: List<City> = emptyList(),
+    val favoriteCities: List<City> = emptyList(),
+    val isSearching: Boolean = false,
+    val error: String? = null
+)
+
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val weatherRepository: WeatherRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState = _uiState.asStateFlow()
+
+    private var searchJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            weatherRepository.getFavoriteCities().collectLatest { favorites ->
+                _uiState.update { it.copy(favoriteCities = favorites) }
+            }
+        }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            if (query.length < 2) {
+                _uiState.update { it.copy(searchResults = emptyList(), isSearching = false) }
+                return@launch
+            }
+            _uiState.update { it.copy(isSearching = true) }
+            delay(500) // Debounce
+            weatherRepository.searchCity(query)
+                .onSuccess { results ->
+                    _uiState.update {
+                        it.copy(searchResults = results, isSearching = false)
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(error = "Search failed: ${error.message}", isSearching = false)
+                    }
+                }
+        }
+    }
+}
