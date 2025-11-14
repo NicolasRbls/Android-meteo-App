@@ -21,6 +21,7 @@ data class HomeUiState(
     val favoriteCities: List<FavoriteWeatherSummary> = emptyList(),
     val isSearching: Boolean = false,
     val currentUserLocation: android.location.Location? = null,
+    val currentLocationCityName: String? = null,
     val error: String? = null
 )
 
@@ -75,10 +76,12 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSearching = true) }
             locationTracker.getCurrentLocation()?.let { location ->
+                val cityName = locationTracker.getCityName(location.latitude, location.longitude)
                 _uiState.update {
                     it.copy(
                         isSearching = false,
-                        currentUserLocation = location
+                        currentUserLocation = location,
+                        currentLocationCityName = cityName
                     )
                 }
             } ?: _uiState.update {

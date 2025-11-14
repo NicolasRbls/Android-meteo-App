@@ -53,6 +53,7 @@ class HomeViewModelTest {
             )
         )
         coEvery { locationTracker.getCurrentLocation() } returns null
+        coEvery { locationTracker.getCityName(any(), any()) } returns "Mock City"
         viewModel = HomeViewModel(weatherRepository, locationTracker)
     }
 

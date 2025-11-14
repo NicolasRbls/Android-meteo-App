@@ -13,6 +13,10 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlin.coroutines.resume
+import android.location.Geocoder
+import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class LocationTrackerImpl @Inject constructor(
     private val locationClient: FusedLocationProviderClient,
@@ -55,6 +59,23 @@ class LocationTrackerImpl @Inject constructor(
                 addOnCanceledListener {
                     cont.cancel()
                 }
+            }
+        }
+    }
+
+    override suspend fun getCityName(latitude: Double, longitude: Double): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    addresses[0].locality // locality usually gives the city name
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
             }
         }
     }

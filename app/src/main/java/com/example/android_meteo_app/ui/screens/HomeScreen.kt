@@ -45,7 +45,7 @@ fun HomeScreen(
                     cityId = 0, // 0 indicates it's a location, not a saved city
                     latitude = location.latitude.toFloat(),
                     longitude = location.longitude.toFloat(),
-                    name = "Current Location"
+                    name = uiState.currentLocationCityName ?: "Current Location"
                 )
             )
             viewModel.onLocationNavigationConsumed()
