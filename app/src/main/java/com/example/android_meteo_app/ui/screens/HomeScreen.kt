@@ -53,6 +53,7 @@ fun HomeScreen(
                             // Navigate to details
                             navController.navigate(
                                 Screen.Details.createRoute(
+                                    cityId = city.id,
                                     latitude = city.latitude.toFloat(),
                                     longitude = city.longitude.toFloat(),
                                     name = city.name
@@ -67,6 +68,7 @@ fun HomeScreen(
                     // Navigate to details
                      navController.navigate(
                         Screen.Details.createRoute(
+                            cityId = city.id,
                             latitude = city.latitude.toFloat(),
                             longitude = city.longitude.toFloat(),
                             name = city.name
@@ -130,8 +132,17 @@ fun CityRow(city: City, onCityClick: (City) -> Unit) {
             .fillMaxWidth()
             .clickable { onCityClick(city) }
     ) {
+        val displayText = buildString {
+            append(city.name)
+            if (city.admin1?.isNotBlank() == true) {
+                append(", ${city.admin1}")
+            }
+            if (city.country.isNotBlank()) {
+                append(", ${city.country}")
+            }
+        }
         Text(
-            text = "${city.name}, ${city.country}",
+            text = displayText,
             modifier = Modifier.padding(16.dp)
         )
     }

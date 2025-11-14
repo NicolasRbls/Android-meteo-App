@@ -30,18 +30,18 @@ class DetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetailUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val cityId: Int = savedStateHandle.get<String>("cityId")?.toIntOrNull() ?: 0
     private val latitude: Float = savedStateHandle.get<String>("latitude")?.toFloatOrNull() ?: 0f
     private val longitude: Float = savedStateHandle.get<String>("longitude")?.toFloatOrNull() ?: 0f
     private val name: String = savedStateHandle.get<String>("name") ?: ""
 
     // This is a temporary city object until we get the full one from the repo
-    private val city = City(id = 0, name = name, latitude = latitude.toDouble(), longitude = longitude.toDouble(), country = "", admin1 = "")
+    private val city = City(id = cityId, name = name, latitude = latitude.toDouble(), longitude = longitude.toDouble(), country = "", admin1 = "")
 
 
     init {
         fetchWeather()
-        // We need a proper city ID to check if it's a favorite.
-        // This will be a bit more complex. For now, we'll just fetch the weather.
+        observeIsFavorite(cityId)
     }
 
     private fun fetchWeather() {
@@ -52,8 +52,6 @@ class DetailViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(weatherInfo = weatherInfo, isLoading = false)
                     }
-                    // Now that we have a full city object, we can check if it's a favorite
-                    observeIsFavorite(weatherInfo.city.id)
                 }
                 .onFailure { error ->
                     _uiState.update {

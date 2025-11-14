@@ -6,13 +6,14 @@ import androidx.navigation.navArgument
 sealed class Screen(val route: String, val arguments: List<NamedNavArgument> = emptyList()) {
     object Home : Screen("home")
     object Details : Screen(
-        route = "details/{latitude}/{longitude}/{name}",
+        route = "details/{cityId}/{latitude}/{longitude}/{name}",
         arguments = listOf(
+            navArgument("cityId") { nullable = false },
             navArgument("latitude") { nullable = false },
             navArgument("longitude") { nullable = false },
             navArgument("name") { nullable = false }
         )
     ) {
-        fun createRoute(latitude: Float, longitude: Float, name: String) = "details/$latitude/$longitude/$name"
+        fun createRoute(cityId: Int, latitude: Float, longitude: Float, name: String) = "details/$cityId/$latitude/$longitude/$name"
     }
 }
