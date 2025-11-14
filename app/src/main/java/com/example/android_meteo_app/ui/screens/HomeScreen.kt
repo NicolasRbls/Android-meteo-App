@@ -19,6 +19,7 @@ import androidx.navigation.NavController
 import com.example.android_meteo_app.domain.City
 import com.example.android_meteo_app.ui.navigation.Screen
 import com.example.android_meteo_app.ui.viewmodels.HomeViewModel
+import com.example.android_meteo_app.ui.getWeatherIcon
 import androidx.compose.ui.Alignment
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,7 +122,7 @@ fun SearchBar(
     isSearching: Boolean,
     onLocationClick: () -> Unit
 ) {
-    TextField(
+    OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
         label = { Text("Search for a city...") },
@@ -135,9 +136,11 @@ fun SearchBar(
         },
         trailingIcon = {
             if (isSearching) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.size(24.dp))
             }
-        }
+        },
+        singleLine = true,
+        shape = MaterialTheme.shapes.medium
     )
 }
 
@@ -170,10 +173,13 @@ fun FavoriteCityRow(summary: com.example.android_meteo_app.domain.FavoriteWeathe
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onCityClick(summary.city) }
+            .clickable { onCityClick(summary.city) },
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -184,16 +190,25 @@ fun FavoriteCityRow(summary: com.example.android_meteo_app.domain.FavoriteWeathe
                         append(", ${summary.city.country}")
                     }
                 }
-                Text(text = displayText)
+                Text(text = displayText, style = MaterialTheme.typography.titleMedium)
+                summary.weatherInfo?.let { weather ->
+                    Text(text = weather.currentCondition.name, style = MaterialTheme.typography.bodySmall)
+                }
             }
             summary.weatherInfo?.let { weather ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = getWeatherIcon(weather.currentCondition),
+                        contentDescription = weather.currentCondition.name,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "${weather.currentTemperature}°C",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.padding(end = 8.dp)
                     )
-                    // Here you could add an icon for the weather.currentCondition
                 }
             } ?: CircularProgressIndicator(modifier = Modifier.size(24.dp))
         }

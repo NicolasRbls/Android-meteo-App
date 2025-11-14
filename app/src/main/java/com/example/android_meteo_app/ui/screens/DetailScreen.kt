@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.android_meteo_app.domain.HourlyWeather
 import com.example.android_meteo_app.domain.WeatherInfo
+import com.example.android_meteo_app.ui.getWeatherIcon
 import com.example.android_meteo_app.ui.viewmodels.DetailViewModel
 import java.time.format.DateTimeFormatter
 
@@ -108,6 +109,13 @@ fun WeatherDetails(weatherInfo: WeatherInfo, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = weatherInfo.city.name, style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(8.dp))
+        Icon(
+            imageVector = getWeatherIcon(weatherInfo.currentCondition),
+            contentDescription = weatherInfo.currentCondition.name,
+            modifier = Modifier.size(128.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
         Text(text = "${weatherInfo.currentTemperature}°C", fontSize = 72.sp)
         Text(text = weatherInfo.currentCondition.name, style = MaterialTheme.typography.titleMedium)
 
@@ -162,6 +170,12 @@ fun HourlyItem(weather: HourlyWeather) {
         ) {
             Text(text = weather.time.format(formatter))
             Spacer(Modifier.height(8.dp))
+            Icon(
+                imageVector = getWeatherIcon(weather.condition),
+                contentDescription = weather.condition.name,
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
             Text(text = "${weather.temperature}°C", style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(4.dp))
             Text(text = "${weather.windSpeed} km/h", fontSize = 12.sp)
